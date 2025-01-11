@@ -31,7 +31,7 @@ module dashboard './dashboard.json' = {
 }
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
-  name: 'storage'
+  name: uniqueString('storage', resourceGroup().id)
   location: location
   kind: 'StorageV2'
   sku: {
