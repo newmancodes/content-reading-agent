@@ -24,7 +24,7 @@ jobs:
 
     - name: Remove Deployed Infrastructure
       run: |
-        az stack sub delete --name ContentReadingAgent --action-on-unmanage deleteAll --yes |& tee ./stack-delete.json
+        az stack group delete --resource-group rg-content-reading-agent --name content-reading-agent --action-on-unmanage deleteAll --yes |& tee ./stack-delete.json
         [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
     
     - name: Debugging
