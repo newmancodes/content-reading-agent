@@ -7,7 +7,13 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09
   location: location
   properties: {
     sku: {
-      name: 'Free'
+      name: 'PerGB2018'
+    }
+    retentionInDays: 2
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    workspaceCapping: {
+      dailyQuotaGb: 1
     }
   }
 }
