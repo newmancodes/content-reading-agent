@@ -9,6 +9,63 @@ on:
     - main
 
 jobs:
+  lint-bicep-files:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Bicep linter
+      run: az bicep lint --file ./bicep/content-reading-agent.bicep
+    
+  validate-bicep-files:
+    needs: lint-bicep-files
+    environment: prod
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Sign in to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_DEPLOYMENT_APP_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_DEPLOYMENT_APP_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_DEPLOYMENT_APP_SUBSCRIPTION_ID }}
+
+    - name: Validate Deployment
+      run: |
+        az deployment sub validate --name content-reading-agent-main-val-${{ github.run_number }}-${{ github.run_attempt }} --location uksouth --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./validate-deployment.json
+        [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
+
+    - name: Write Validation Deployment Output to Pull Request
+      if: ${{ github.event_name == 'pull_request' && always() }}
+      uses: ./.github/actions/upload-file-as-issue-comment
+      with:
+        pull-request-number: ${{ github.event.number }}
+        label: 'Output from Validation Deployment'
+        path-to-file: './validate-deployment.json'
+
+    - name: Perform What-If Deployment
+      id: perform-whatif-deployment
+      run: |
+        az deployment sub what-if --name content-reading-agent-main-pln-${{ github.run_number }}-${{ github.run_attempt }} --location uksouth --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./whatif-deployment.txt
+        [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
+
+    - name: Write What-If Deployment Output to Pull Request
+      if: ${{ github.event_name == 'pull_request' && always() }}
+      uses: ./.github/actions/upload-file-as-issue-comment
+      with:
+        pull-request-number: ${{ github.event.number }}
+        label: 'Output from What-If Deployment'
+        path-to-file: './whatif-deployment.txt'
+        file-format: 'text'
+
   build-and-test:
     runs-on: ubuntu-latest
 
@@ -16,7 +73,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET 9
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.x'
 
@@ -36,3 +93,31 @@ jobs:
         echo "Installing .NET dependencies"
 
         echo "Installing Python dependencies"
+
+  deploy:
+    if: ${{ github.event_name == 'push' }}
+    needs: [ validate-bicep-files, build-and-test ]
+    environment: prod
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_DEPLOYMENT_APP_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_DEPLOYMENT_APP_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_DEPLOYMENT_APP_SUBSCRIPTION_ID }}
+
+      - name: Deploy Infrastructure
+        run: |
+          az stack sub create --name content-reading-agent --description 'Content Reading AI Agent' --location uksouth --deny-settings-mode denyWriteAndDelete --action-on-unmanage deleteAll --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./stack-create.json
+          [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
+      
+      - name: Debugging
+        run: cat ./stack-create.json

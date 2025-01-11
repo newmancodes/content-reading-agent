@@ -1,0 +1,53 @@
+name: Upload File as Issue Comment
+
+inputs:
+  pull-request-number:
+    description: The number of the pull request to attach the files payload to
+  label:
+    description: The label to apply
+  path-to-file:
+    description: The path to the file to include in the comment
+  file-format:
+    description: The format of the file
+    default: 'json'
+
+runs:
+  using: composite
+
+  steps:
+    - name: Write File to Pull Request
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          var existingComments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: ${{ inputs.pull-request-number }}
+          });
+
+          for (const comment of existingComments.data) {
+            if (comment.body.startsWith('### ${{ inputs.label }}.')) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id
+              });
+            }
+          }
+
+          await fs.readFile('${{ inputs.path-to-file }}', 'utf8', async function read(err, data) {
+            if (err) {
+              throw err;
+            }
+
+            const fileContent = data;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pull-request-number }},
+              body: `### ${{ inputs.label }}.\n\n\`\`\`${{ inputs.file-format }}\n${fileContent}\n\`\`\``
+            });
+          });

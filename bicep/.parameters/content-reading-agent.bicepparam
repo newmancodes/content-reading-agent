@@ -1,2 +1,2 @@
-using '../blog-reading-agent.bicep'
+using '../content-reading-agent.bicep'
 

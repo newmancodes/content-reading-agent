@@ -1,3 +1,20 @@
 {
-    
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "[bicep]": {
+        "editor.tabSize": 2
+    },
+    "[bicep-params]": {
+        "editor.tabSize": 2
+    },
+    "[json]": {
+        "editor.tabSize": 2
+    },
+    "[yaml]": {
+        "editor.tabSize": 2
+    },
+    "[yml]": {
+        "editor.tabSize": 2
+    }
 }

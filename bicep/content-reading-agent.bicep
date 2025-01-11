@@ -22,11 +22,11 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-module dashboard './dashboard/dashboard.yml' = {
+module dashboard './dashboard.json' = {
   name: 'dashboard'
   params: {
     location: location
-    appInsightsId: applicationInsights.id
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 

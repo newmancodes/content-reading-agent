@@ -4,8 +4,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  remove-infrastructure:
+  deploy:
+    environment: prod
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+
+    - name: Sign in to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_DEPLOYMENT_APP_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_DEPLOYMENT_APP_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_DEPLOYMENT_APP_SUBSCRIPTION_ID }}
+
+    - name: Remove Deployed Infrastructure
+      run: |
+        az stack sub delete --name ContentReadingAgent --action-on-unmanage deleteAll --yes |& tee ./stack-delete.json
+        [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
+    
+    - name: Debugging
+      run: cat ./stack-delete.json
