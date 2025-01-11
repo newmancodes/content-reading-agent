@@ -22,16 +22,16 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-module dashboard './dashboard/dashboard.yml' = {
+module dashboard './dashboard.json' = {
   name: 'dashboard'
   params: {
     location: location
-    appInsightsId: applicationInsights.id
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.id
   }
 }
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
-  name: 'storage'
+  name: uniqueString('storage', resourceGroup().id)
   location: location
   kind: 'StorageV2'
   sku: {
