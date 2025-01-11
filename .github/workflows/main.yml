@@ -40,7 +40,7 @@ jobs:
 
     - name: Validate Deployment
       run: |
-        az deployment group validate --resource-group rg-content-reading-agent --name content-reading-agent-main-val-${{ github.run_number }}-${{ github.run_attempt }} --location uksouth --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./validate-deployment.json
+        az deployment group validate --resource-group rg-content-reading-agent --name content-reading-agent-main-val-${{ github.run_number }}-${{ github.run_attempt }} --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./validate-deployment.json
         [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
 
     - name: Write Validation Deployment Output to Pull Request
@@ -54,7 +54,7 @@ jobs:
     - name: Perform What-If Deployment
       id: perform-whatif-deployment
       run: |
-        az deployment group what-if --resource-group rg-content-reading-agent --name content-reading-agent-main-pln-${{ github.run_number }}-${{ github.run_attempt }} --location uksouth --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./whatif-deployment.txt
+        az deployment group what-if --resource-group rg-content-reading-agent --name content-reading-agent-main-pln-${{ github.run_number }}-${{ github.run_attempt }} --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./whatif-deployment.txt
         [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
 
     - name: Write What-If Deployment Output to Pull Request
@@ -116,7 +116,7 @@ jobs:
 
       - name: Deploy Infrastructure
         run: |
-          az stack group create --resource-group rg-content-reading-agent --name content-reading-agent --description 'Content Reading AI Agent' --location uksouth --deny-settings-mode denyWriteAndDelete --action-on-unmanage deleteAll --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./stack-create.json
+          az stack group create --resource-group rg-content-reading-agent --name content-reading-agent --description 'Content Reading AI Agent' --deny-settings-mode denyWriteAndDelete --action-on-unmanage deleteAll --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./stack-create.json
           [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
       
       - name: Debugging
