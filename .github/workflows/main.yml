@@ -94,6 +94,14 @@ jobs:
 
         echo "Installing Python dependencies"
 
+    - name: Docker Compose Up
+      id: dockerup
+      run: docker compose -f ./docker-compose.yml up -d
+
+    - name: Docker Compose Down
+      if: steps.dockerup.conclusion == 'success'
+      run: docker compose -f ./docker-compose.yml down
+
   deploy:
     if: ${{ github.event_name == 'push' }}
     needs: [ validate-bicep-files, build-and-test ]
@@ -116,7 +124,9 @@ jobs:
 
       - name: Deploy Infrastructure
         run: |
-          sp_id = az rest --method GET --uri https://graph.microsoft.com/v1.0/me | from json | get id
+          sudo apt update
+          sudo apt install jq
+          sp_id = az rest --method GET --uri https://graph.microsoft.com/v1.0/me | jq '.id'
           az stack group create --resource-group rg-content-reading-agent --name content-reading-agent --description 'Content Reading AI Agent' --deny-settings-mode denyWriteAndDelete --deny-settings-excluded-principals $sp_id --action-on-unmanage deleteAll --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./stack-create.json
           [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
       
