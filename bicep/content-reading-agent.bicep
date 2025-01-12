@@ -44,3 +44,15 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
     name: 'Standard_LRS'
   }
 }
+
+resource servicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
+  name: 'serviceplan'
+  location: location
+  kind: 'functionapp,linux'
+  sku: {
+    name: 'F1'
+  }
+  properties: {
+    reserved: true
+  }
+}
