@@ -66,7 +66,7 @@ jobs:
         path-to-file: './whatif-deployment.txt'
         file-format: 'text'
 
-  build-and-test:
+  build-and-test-content-locator:
     runs-on: ubuntu-latest
 
     steps:
@@ -76,6 +76,23 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.x'
+
+    - name: Install dependencies
+      run: dotnet restore ./content-locator/ContentLocator.sln
+
+    - name: Docker Compose Up
+      id: dockerup
+      run: docker compose -f ./docker-compose.yml up -d
+
+    - name: Docker Compose Down
+      if: steps.dockerup.conclusion == 'success'
+      run: docker compose -f ./docker-compose.yml down
+
+  build-and-test-content-summarizer:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
 
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
@@ -90,8 +107,6 @@ jobs:
         pipx ensurepath
         pipx install poetry==2.0.0
 
-        echo "Installing .NET dependencies"
-
         echo "Installing Python dependencies"
 
     - name: Docker Compose Up
@@ -104,7 +119,7 @@ jobs:
 
   deploy:
     if: ${{ github.event_name == 'push' }}
-    needs: [ validate-bicep-files, build-and-test ]
+    needs: [ validate-bicep-files, build-and-test-content-locator, build-and-test-content-summarizer ]
     environment: prod
     runs-on: ubuntu-latest
 
