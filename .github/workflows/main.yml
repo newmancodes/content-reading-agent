@@ -40,6 +40,9 @@ jobs:
 
     - name: Validate Deployment
       run: |
+        echo az rest --method GET --uri https://graph.microsoft.com/v1.0/me
+        sp_id = az rest --method GET --uri https://graph.microsoft.com/v1.0/me | jq '.id'
+        echo "${sp_id}"
         az deployment group validate --resource-group rg-content-reading-agent --name content-reading-agent-val-${{ github.run_number }}-${{ github.run_attempt }} --template-file ./bicep/content-reading-agent.bicep --parameters ./bicep/.parameters/content-reading-agent.bicepparam |& tee ./validate-deployment.json
         [ $PIPESTATUS -eq 0 ] || exit $PIPESTATUS
 
