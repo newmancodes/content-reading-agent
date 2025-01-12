@@ -9,7 +9,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09
     sku: {
       name: 'PerGB2018'
     }
-    retentionInDays: 7
+    retentionInDays: 30
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
     workspaceCapping: {
@@ -50,7 +50,7 @@ resource servicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   location: location
   kind: 'functionapp,linux'
   sku: {
-    name: 'F1'
+    name: 'B1'
   }
   properties: {
     reserved: true
