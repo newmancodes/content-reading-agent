@@ -9,7 +9,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09
     sku: {
       name: 'PerGB2018'
     }
-    retentionInDays: 2
+    retentionInDays: 7
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
     workspaceCapping: {
