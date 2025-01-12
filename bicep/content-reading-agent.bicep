@@ -9,7 +9,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09
     sku: {
       name: 'PerGB2018'
     }
-    retentionInDays: 2
+    retentionInDays: 7
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
     workspaceCapping: {
@@ -42,5 +42,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
+  }
+}
+
+resource servicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
+  name: 'serviceplan'
+  location: location
+  kind: 'functionapp,linux'
+  sku: {
+    name: 'F1'
+  }
+  properties: {
+    reserved: true
   }
 }
